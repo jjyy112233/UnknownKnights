@@ -22,36 +22,42 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels:
     - default
+    - Unit
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6f26ba0ff34e86b4486158d9870182d2
     m_Address: UnitKnight
     m_ReadOnly: 0
     m_SerializedLabels:
     - default
+    - Unit
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6d5c8162f5e38de49b1da29ae023b6ac
     m_Address: UnitMagician
     m_ReadOnly: 0
     m_SerializedLabels:
     - default
+    - Unit
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8cc8be64f3d9a6747b10201295016eb7
     m_Address: Enemy0
     m_ReadOnly: 0
     m_SerializedLabels:
     - default
+    - Unit
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b85e213cedb763a409f08577ba0f3281
     m_Address: Enemy1
     m_ReadOnly: 0
     m_SerializedLabels:
     - default
+    - Unit
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d001dfe05f4530441a9a88d3cef013e7
     m_Address: Enemy2
     m_ReadOnly: 0
     m_SerializedLabels:
     - default
+    - Unit
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 28372201113e9eb4183e1d4273a25903, type: 2}
