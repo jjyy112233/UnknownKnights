@@ -659,7 +659,7 @@ MonoBehaviour:
     - {fileID: 1253319613}
     - {fileID: 1214585050}
     - {fileID: 1171251405}
-  units: {fileID: 68191436}
+  battleMask: {fileID: 1902220849}
 --- !u!4 &498425591
 Transform:
   m_ObjectHideFlags: 0
@@ -2263,7 +2263,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1902220848
 Transform:
   m_ObjectHideFlags: 0

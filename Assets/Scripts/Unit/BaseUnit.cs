@@ -1,7 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.AI;
+using static UnityEngine.GraphicsBuffer;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class BaseUnitInfo
 {
@@ -53,7 +57,7 @@ public class BaseUnitInfo
         this.unitName = name;
         this.unitType = uType;
         this.elementType = eleType;
-        this.hp =  this.maxHp = maxHp;
+        this.hp = this.maxHp = maxHp;
         this.def = def;
         this.speed = speed;
         this.attackCool = atkCool;
@@ -61,35 +65,112 @@ public class BaseUnitInfo
 
         nowAtkCool = nowSkillCool = 0f;
     }
-    public void Init()
-    {
-        Hp = MaxHp;
-        NowAttackCool = NowSkillCool = 0f;
-    }
 }
 
 public class BaseUnit : MonoBehaviour, IAttackable
 {
-    BaseUnitInfo info;
-    Animator animator;
+    private BaseUnitInfo info;
+    private Animator animator;
+
+    #region Ai
+    private Vector3 movePos;
+    private float battleWaitSpeed = 3f;
+    private BaseUnit battleTarget;
+    Action NowUpadte;
+
+    private UnitState unitState;
+    public UnitState UnitState
+    {
+        get
+        {
+            return unitState;
+        }
+        set
+        {
+            if (value == unitState)
+                return;
+
+            switch (value)
+            {
+                case UnitState.None:
+                    break;
+                case UnitState.Idle:
+                    NowUpadte = IdleUpdate;
+                    animator.SetFloat("Speed", 0);
+                    break;
+                case UnitState.Move:
+                    NowUpadte = MoveUpdate;
+                    animator.SetFloat("Speed", info.Speed);
+                    break;
+                case UnitState.Battle:
+                    NowUpadte = BattleUpdate;
+                    BattleState = BattleState.BattleIdle;
+                    break;
+                case UnitState.Die:
+                    animator.SetFloat("Speed", 0);
+                    break;
+                case UnitState.Count:
+                    break;
+                default:
+                    break;
+            }
+
+            unitState = value;
+        }
+    }
+
+    private BattleState battleState;
+    public BattleState BattleState
+    {
+        get
+        {
+            return battleState;
+        }
+        set
+        {
+            if (value == battleState)
+                return;
+
+            switch (value)
+            {
+                case BattleState.None:
+                    break;
+                case BattleState.BattleIdle:
+                    break;
+                case BattleState.MoveToTarget:
+                    break;
+                case BattleState.NormalAttack:
+                    break;
+                case BattleState.ActiveSkill:
+                    break;
+                case BattleState.Die:
+                    break;
+                case BattleState.Count:
+                    break;
+                default:
+                    break;
+            }
+
+            battleState = value;
+        }
+    }
+    #endregion
 
     private void Awake()
     {
-        animator = GetComponentInChildren<Animator>();
-    }
-
-    public void InitPosition(int line, int pos)
-    {
-        transform.position =  BattleManager.Instance.GetStartPosition(line, pos);
+        animator = transform.GetComponentInChildren<Animator>();
     }
 
     public virtual void InitInfo(UnitInfo data, Vector3Int pos)
     {
-        Debug.Log(data);
         info = new BaseUnitInfo(data.UnitName, data.UnitType, data.ElementType, data.MaxHp, data.Def, data.Speed, data.AttackCool, data.SkillCool);
-        InitPosition(pos.x, pos.y);
         transform.localScale = new Vector3(pos.x >= 3 ? 1 : -1, 1, 1);
+        movePos = BattleManager.Instance.GetStartPosition(pos.x, pos.y);
+        transform.position = (movePos + transform.right * 3 * transform.localScale.x);
+        NowUpadte = null;
+        UnitState = UnitState.Idle;
     }
+
 
     #region Attackable interface
     public void OnAttack(BaseUnit target, int damage) //Å¸°ÙÀ» °ø°Ý
@@ -115,9 +196,38 @@ public class BaseUnit : MonoBehaviour, IAttackable
     #endregion
 
 
+    private void Update()
+    {
+        if (NowUpadte != null)
+            NowUpadte();
+    }
+    public void IdleUpdate()
+    {
+
+    }
+    public void MoveUpdate()
+    {
+        transform.position = Vector3.MoveTowards(transform.position, movePos, battleWaitSpeed * Time.deltaTime);
+        if(Vector3.Distance(transform.position, movePos) < 0.1f)
+        {
+            transform.position = movePos;
+            UnitState = UnitState.Idle;
+            BattleManager.Instance.UnitReadySucces();
+        }
+
+    }
+    public void BattleUpdate()
+    {
+
+    }
+
     private void OnDestroy()
     {
         Addressables.ReleaseInstance(gameObject);
     }
 
+    public void WaitBattle()
+    {
+        UnitState = UnitState.Move;
+    }
 }
