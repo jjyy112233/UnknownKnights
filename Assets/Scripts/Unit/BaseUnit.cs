@@ -1,28 +1,29 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.AI;
-using static UnityEngine.GraphicsBuffer;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
+[Serializable]
 public class BaseUnitInfo
 {
-    string unitName;
-    UnitType unitType; // 캐릭터 타입 0: 기사, 1: 궁수, 2: 마법사
-    ElementType elementType; //속성 0: 불, 1: 물 2: 땅 3: 바람 4: 빛 5: 어둠 6: 기계  ---  불<물<땅<바람<불
+    [SerializeField] string unitName;
+    [SerializeField] UnitType unitType; // 캐릭터 타입 0: 기사, 1: 궁수, 2: 마법사
+    [SerializeField] ElementType elementType; //속성 0: 불, 1: 물 2: 땅 3: 바람 4: 빛 5: 어둠 6: 기계  ---  불<물<땅<바람<불
 
-    int maxHp;
-    int hp;
-    int def;
-    int speed;
+    [SerializeField] int maxHp;
+    [SerializeField] int hp;
+    [SerializeField] int def;
+    [SerializeField] int speed;
 
-    float attackCool;
-    float nowAtkCool;
+    [SerializeField] float attackCool;
+    [SerializeField] float nowAttackCool;
 
-    float skillCool;
-    float nowSkillCool;
+    [SerializeField] float skillCool;
+    [SerializeField] float nowSkillCool;
+
+    [SerializeField] float attackDis;
 
     public string UnitName { get { return unitName; } set { unitName = value; } }
     public UnitType UnitType { get { return unitType; } set { unitType = value; } }
@@ -33,9 +34,19 @@ public class BaseUnitInfo
     public int Speed { get { return speed; } set { speed = value; } }
 
     public float AttackCool { get { return attackCool; } set { attackCool = value; } }
-    public float NowAttackCool { get { return nowAtkCool; } set { nowAtkCool = value; } }
+    public float NowAttackCool { get { return nowAttackCool; } set { nowAttackCool = value; } }
+    public bool IsAttack => NowAttackCool >= AttackCool;
     public float SkillCool { get { return skillCool; } set { skillCool = value; } }
     public float NowSkillCool { get { return nowSkillCool; } set { nowSkillCool = value; } }
+    public bool IsSkill => NowSkillCool >= SkillCool;
+
+    public float AttackDis { get { return attackDis; } set { attackDis = value; } }
+
+    public void AddDeltaTime(float delta)
+    {
+        NowAttackCool += delta;
+        NowSkillCool += delta;
+    }
 
     public bool IsDie() => hp <= 0;
     public float GetHpRatio => (float)Hp / (float)MaxHp;
@@ -52,34 +63,60 @@ public class BaseUnitInfo
         return SkillCool <= NowSkillCool;
     }
 
-    public BaseUnitInfo(string name, UnitType uType, ElementType eleType, int maxHp, int def, int speed, float atkCool, float sklCool)
+    public BaseUnitInfo(string name, UnitType uType, ElementType eleType, int maxHp, int def, 
+        int speed, float atkCool, float sklCool, float attackDis)
     {
-        this.unitName = name;
-        this.unitType = uType;
-        this.elementType = eleType;
-        this.hp = this.maxHp = maxHp;
-        this.def = def;
-        this.speed = speed;
-        this.attackCool = atkCool;
-        this.skillCool = sklCool;
+        this.UnitName = name;
+        this.UnitType = uType;
+        this.ElementType = eleType;
+        this.Hp = this.maxHp = maxHp;
+        this.Def = def;
+        this.Speed = speed;
+        this.AttackCool = atkCool;
+        this.SkillCool = sklCool;
+        this.AttackDis = attackDis;
 
-        nowAtkCool = nowSkillCool = 0f;
+        this.NowAttackCool = this.NowSkillCool = 0f;
     }
 }
 
 public class BaseUnit : MonoBehaviour, IAttackable
 {
-    private BaseUnitInfo info;
-    private Animator animator;
+    [SerializeField]
+    protected BaseUnitInfo info;
+    protected List<BaseUnit> teamUnits;
+    protected List<BaseUnit> enemyUnits;
 
-    #region Ai
+    protected Animator animator;
+
+    [SerializeField]
+    private int startLine; 
+    [SerializeField]
+    private int startLineNum;
+    private UnitTeamType unitTeamType;
+    public UnitTeamType UnitTeamType  { get { return unitTeamType; } }
+
+    public int GetLine => startLine;
+    public int GetLineNum => startLineNum;
+
     private Vector3 movePos;
     private float battleWaitSpeed = 3f;
-    private BaseUnit battleTarget;
-    Action NowUpadte;
 
+    protected BaseUnit battleTarget;
+    private Action<float> NowUpadte;
+    private Action FindTarget;
+    protected void AddFindTarget(Action evnet) => FindTarget += evnet;
+
+    private Action AttackEnd;
+    private Action SkillEnd;
+
+    private UnitAnimation unitAnimation;
+    public void AttackAniEnd() => AttackEnd();
+    public void SkillAniEnd() => SkillEnd();
+
+    #region 상태패턴
     private UnitState unitState;
-    public UnitState UnitState
+    protected UnitState UnitState
     {
         get
         {
@@ -105,9 +142,10 @@ public class BaseUnit : MonoBehaviour, IAttackable
                 case UnitState.Battle:
                     NowUpadte = BattleUpdate;
                     BattleState = BattleState.BattleIdle;
-                    break;
-                case UnitState.Die:
-                    animator.SetFloat("Speed", 0);
+                    SetStartTarget();
+                    info.NowAttackCool = info.AttackCool; 
+
+
                     break;
                 case UnitState.Count:
                     break;
@@ -120,7 +158,7 @@ public class BaseUnit : MonoBehaviour, IAttackable
     }
 
     private BattleState battleState;
-    public BattleState BattleState
+    protected BattleState BattleState
     {
         get
         {
@@ -136,14 +174,20 @@ public class BaseUnit : MonoBehaviour, IAttackable
                 case BattleState.None:
                     break;
                 case BattleState.BattleIdle:
+                    animator.SetFloat("Speed", 0);
                     break;
                 case BattleState.MoveToTarget:
+                    animator.SetFloat("Speed", info.Speed);
                     break;
-                case BattleState.NormalAttack:
+                case BattleState.Attack:
+                    animator.SetTrigger("Attack");
                     break;
-                case BattleState.ActiveSkill:
+                case BattleState.Skill:
+                    animator.SetTrigger("Skill");
                     break;
                 case BattleState.Die:
+                    animator.SetFloat("Speed", 0);
+                    animator.SetTrigger("Die");
                     break;
                 case BattleState.Count:
                     break;
@@ -154,28 +198,54 @@ public class BaseUnit : MonoBehaviour, IAttackable
             battleState = value;
         }
     }
-    #endregion
 
+    #endregion
     private void Awake()
     {
         animator = transform.GetComponentInChildren<Animator>();
     }
-
-    public virtual void InitInfo(UnitInfo data, Vector3Int pos)
+    public void BattleStart()
     {
-        info = new BaseUnitInfo(data.UnitName, data.UnitType, data.ElementType, data.MaxHp, data.Def, data.Speed, data.AttackCool, data.SkillCool);
-        transform.localScale = new Vector3(pos.x >= 3 ? 1 : -1, 1, 1);
-        movePos = BattleManager.Instance.GetStartPosition(pos.x, pos.y);
+        teamUnits = unitTeamType == UnitTeamType.Player ? BattleManager.Instance.PlayerUnitList : BattleManager.Instance.EnemyUnitList;
+        enemyUnits = unitTeamType == UnitTeamType.Player ? BattleManager.Instance.EnemyUnitList : BattleManager.Instance.PlayerUnitList;
+
+        UnitState = UnitState.Battle;
+    }
+
+
+    public virtual void InitInfo(UnitInfo data,Vector3Int posIdx, Vector3 pos, UnitTeamType teamType)
+    {
+        info = new BaseUnitInfo(data.UnitName, data.UnitType, data.ElementType, data.MaxHp,
+            data.Def, data.Speed, data.AttackCool, data.SkillCool, data.AttackDis);
+
+        transform.localScale = new Vector3(teamType == UnitTeamType.Player  ? -1 : 1, 1, 1);
+        movePos = pos;
         transform.position = (movePos + transform.right * 3 * transform.localScale.x);
         NowUpadte = null;
         UnitState = UnitState.Idle;
+        startLine = posIdx.x;
+        startLineNum = posIdx.y;
+
+        unitTeamType = teamType;
+
+        unitAnimation = transform.GetChild(0).AddComponent<UnitAnimation>();
+
+        AttackEnd += delegate
+        {
+            info.NowAttackCool = 0f;
+            BattleState = BattleState.BattleIdle;
+        };
+        SkillEnd += delegate
+        {
+            info.NowSkillCool = 0f;
+            BattleState = BattleState.BattleIdle;
+        };
     }
 
 
     #region Attackable interface
     public void OnAttack(BaseUnit target, int damage) //타겟을 공격
     {
-        info.NowSkillCool = 0f;
         target.OnDamage(this, damage);
     }
 
@@ -199,16 +269,16 @@ public class BaseUnit : MonoBehaviour, IAttackable
     private void Update()
     {
         if (NowUpadte != null)
-            NowUpadte();
+            NowUpadte(Time.deltaTime);
     }
-    public void IdleUpdate()
+    protected void IdleUpdate(float delta)
     {
 
     }
-    public void MoveUpdate()
+    protected void MoveUpdate(float delta)
     {
-        transform.position = Vector3.MoveTowards(transform.position, movePos, battleWaitSpeed * Time.deltaTime);
-        if(Vector3.Distance(transform.position, movePos) < 0.1f)
+        transform.position = Vector3.MoveTowards(transform.position, movePos, battleWaitSpeed * delta);
+        if(Vector2.Distance(transform.position, movePos) < 0.1f)
         {
             transform.position = movePos;
             UnitState = UnitState.Idle;
@@ -216,9 +286,151 @@ public class BaseUnit : MonoBehaviour, IAttackable
         }
 
     }
-    public void BattleUpdate()
+    protected void BattleUpdate(float delta)
     {
+        info.AddDeltaTime(delta);
 
+        switch (BattleState)
+        {
+            case BattleState.None:
+                break;
+            case BattleState.BattleIdle:
+
+                if(battleTarget == null && FindTarget != null)
+                    FindTarget();
+                else 
+                {
+                    if (IsTargetAround())
+                    {
+                        if (info.IsSkill)
+                            BattleState = BattleState.Skill;
+                        else if (info.IsAttack)
+                            BattleState = BattleState.Attack;
+                    }
+                    else
+                        BattleState = BattleState.MoveToTarget;
+                }
+
+                break;
+            case BattleState.MoveToTarget:
+
+                if (battleTarget == null)
+                    FindTarget();
+                else
+                {
+                    if (IsTargetAround())
+                        BattleState = BattleState.BattleIdle;
+                    else
+                    {
+                        transform.localScale = new Vector3(battleTarget.transform.position.x > transform.position.x ? -1 : 1, 1, 1);
+                        transform.position = Vector3.MoveTowards(transform.position, battleTarget.transform.position, info.Speed * delta);
+                    }
+                }
+
+                break;
+            case BattleState.Attack:
+                break;
+            case BattleState.Skill:
+                break;
+            case BattleState.Die:
+                break;
+            case BattleState.Count:
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    #region Targeting
+    protected bool IsTargetAround()
+    {
+        var dis = Vector2.Distance(transform.position, battleTarget.transform.position);
+
+        return dis <= info.AttackDis;
+    }
+    protected void SetMinDistanceTarget()
+    {
+        var min = float.MaxValue;
+        BaseUnit nowMinUnit = null;
+
+        foreach (var unit in enemyUnits)
+        {
+            var dis = Vector2.Distance(unit.transform.position, transform.position);
+            if (dis < min)
+            {
+                min = dis;
+                nowMinUnit = unit;
+            }
+        }
+
+        battleTarget = nowMinUnit;
+    }
+    protected void SetMaxDistanceTarget()
+    {
+        var max = 0f;
+        BaseUnit nowMaxUnit = null;
+
+        foreach (var unit in enemyUnits)
+        {
+            var dis = Vector2.Distance(unit.transform.position, transform.position);
+            if (dis > max)
+            {
+                max = dis;
+                nowMaxUnit = unit;
+            }
+        }
+
+        battleTarget = nowMaxUnit;
+    }
+
+    protected void SetStartTarget()
+    {
+        List<BaseUnit> targetLine = null;
+        var frontSide = enemyUnits.Where(t => t.GetLine == 0).ToList();
+        if (frontSide.Count != 0)  targetLine = frontSide;
+        else
+        {
+            var center = enemyUnits.Where(t => t.GetLine == 1).ToList();
+            if (center.Count != 0)  targetLine = center;
+            else
+            {
+                var backSide = enemyUnits.Where(t => t.GetLine == 2).ToList();
+                if (backSide.Count != 0)  targetLine = backSide;
+            }
+        }
+
+        switch (targetLine.Count)
+        {
+            case 1:
+                battleTarget = targetLine[0];
+                break;
+            case 2:
+                if(GetLineNum == 2)
+                {
+                    battleTarget = targetLine.Find(t => t.GetLineNum == 1);
+                }
+                else
+                {
+                    battleTarget = targetLine.Find(t => t.GetLineNum == 0);
+                }
+                break;
+            case 3:
+                battleTarget = targetLine.Find(t=>t.GetLineNum == 1);
+                break;
+            default:
+                break;
+        }
+
+        Debug.Log($"{info.UnitName} -> {battleTarget.info.UnitName}");
+
+    }
+
+    #endregion
+
+    public void WaitBattle()
+    {
+        UnitState = UnitState.Move;
     }
 
     private void OnDestroy()
@@ -226,8 +438,4 @@ public class BaseUnit : MonoBehaviour, IAttackable
         Addressables.ReleaseInstance(gameObject);
     }
 
-    public void WaitBattle()
-    {
-        UnitState = UnitState.Move;
-    }
 }

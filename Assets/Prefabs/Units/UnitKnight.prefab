@@ -1869,7 +1869,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7659017892017671188}
-  - component: {fileID: 3757201238823776237}
+  - component: {fileID: 7073376557701784367}
   m_Layer: 5
   m_Name: UnitKnight
   m_TagString: Untagged
@@ -1897,7 +1897,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &3757201238823776237
+--- !u!114 &7073376557701784367
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1906,10 +1906,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 3812809279662472564}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 290c05f3ae2698c459851102543f00a8, type: 3}
+  m_Script: {fileID: 11500000, guid: 2583d92b9466ca0499f327d3cfa6ff30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 333363525230616711}
 --- !u!1 &4000748236406718574
 GameObject:
   m_ObjectHideFlags: 0

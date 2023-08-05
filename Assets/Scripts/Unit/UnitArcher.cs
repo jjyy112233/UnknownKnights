@@ -4,20 +4,10 @@ using UnityEngine;
 
 public class UnitArcher : BaseUnit
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
+    public override void InitInfo(UnitInfo data, Vector3Int posIdx, Vector3 pos, UnitTeamType teamType)
     {
-        
-    }
-
-    public override void InitInfo(UnitInfo data, Vector3Int pos)
-    {
-        base.InitInfo(data, pos);
+        base.InitInfo(data, posIdx, pos, teamType);
+        AddFindTarget(SetMinDistanceTarget);
     }
 }

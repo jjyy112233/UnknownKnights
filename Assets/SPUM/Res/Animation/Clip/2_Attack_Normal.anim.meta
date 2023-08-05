@@ -1,15 +1,8 @@
 fileFormatVersion: 2
-guid: c66e5eb2778574f1abbd40dcb05e1df7
+guid: 36fe7080465588d41942747bbe8d8d72
 NativeFormatImporter:
   externalObjects: {}
-  mainObjectFileID: 0
+  mainObjectFileID: 7400000
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 188715
-  packageName: 2D Pixel Unit Maker - SPUM
-  packageVersion: 1.6.3
-  assetPath: Assets/SPUM/Res/Animation/Clip/2_Attack_Normal.anim
-  uploadId: 599394

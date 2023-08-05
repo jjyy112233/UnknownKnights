@@ -3836,7 +3836,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 609233615647550863}
-  - component: {fileID: -4777972536940509985}
+  - component: {fileID: 2686215395200337763}
   m_Layer: 5
   m_Name: Enemy1
   m_TagString: Untagged
@@ -3864,7 +3864,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &-4777972536940509985
+--- !u!114 &2686215395200337763
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3873,10 +3873,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 8505063617539902696}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 290c05f3ae2698c459851102543f00a8, type: 3}
+  m_Script: {fileID: 11500000, guid: 2583d92b9466ca0499f327d3cfa6ff30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 3505571578705900521}
 --- !u!1 &8948580405182537245
 GameObject:
   m_ObjectHideFlags: 0

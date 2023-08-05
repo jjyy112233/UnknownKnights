@@ -10,12 +10,16 @@ public enum ElementType    //¼Ó¼º 0: ºÒ, 1: ¹° 2: ¶¥ 3: ¹Ù¶÷ 4: ºû 5: ¾îµÒ 6: ±â
 {
     None = -1, Fire, Water, Geo, Wind, Light, Dark, Machine, Count
 }
-
 public enum UnitState
 {
-    None = -1, Idle, Move, Battle, Die, Count
+    None = -1, Idle, Move, Battle, Count
 }
 public enum BattleState
 {
-    None = -1, BattleIdle, MoveToTarget, NormalAttack, ActiveSkill, Die, Count
+    None = -1, BattleIdle, MoveToTarget, Attack, Skill, Die, Count
+}
+
+public enum UnitTeamType
+{
+    None = -1, Player, Enemy, Count
 }

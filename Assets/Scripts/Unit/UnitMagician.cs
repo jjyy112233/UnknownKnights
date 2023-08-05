@@ -4,15 +4,9 @@ using UnityEngine;
 
 public class UnitMagician : BaseUnit
 {
-    // Start is called before the first frame update
-    void Start()
+    public override void InitInfo(UnitInfo data, Vector3Int posIdx, Vector3 pos, UnitTeamType teamType)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        base.InitInfo(data, posIdx, pos, teamType);
+        AddFindTarget(SetMinDistanceTarget);
     }
 }

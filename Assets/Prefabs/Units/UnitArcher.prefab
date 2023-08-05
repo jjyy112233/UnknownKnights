@@ -42,7 +42,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2984338335062688706}
-  - component: {fileID: 761050933660986522}
+  - component: {fileID: -3787396647281755938}
   m_Layer: 5
   m_Name: UnitArcher
   m_TagString: Untagged
@@ -70,7 +70,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &761050933660986522
+--- !u!114 &-3787396647281755938
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -79,10 +79,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 355048818455395515}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 290c05f3ae2698c459851102543f00a8, type: 3}
+  m_Script: {fileID: 11500000, guid: 0b45b3c8d9a2373449e1a85fab835628, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 4283301698193970930}
 --- !u!1 &359900077038044676
 GameObject:
   m_ObjectHideFlags: 0

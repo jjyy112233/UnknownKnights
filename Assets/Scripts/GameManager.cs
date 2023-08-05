@@ -1,12 +1,25 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
+
+[Serializable]
+public struct Line
+{
+    public List<string> lines;
+}
 public class GameManager : Singleton<GameManager>
 {
     [SerializeField]
-    List<UnitInfo> unitInfos = new List<UnitInfo>();
+    private List<UnitInfo> unitInfos = new List<UnitInfo>(); //모든 캐릭터 정보
+
+    [SerializeField]
+    private List<Line> playerUnitField;
+    public List<Line> PlayerUnitField { get { return playerUnitField; } }
+
+    [SerializeField]
+    private List<Line> enemyUnitField;
+    public List<Line> EnemyUnitField { get { return enemyUnitField; } }
 
 
     public UnitInfo GetUnitInfo(string name)

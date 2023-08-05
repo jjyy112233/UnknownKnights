@@ -24,6 +24,9 @@ public class UnitInfo : ScriptableObject
     [SerializeField]
     private float skillCool;
 
+    [SerializeField]
+    private float attackDis;
+
 
     public string UnitName { get { return unitName; } }
     public UnitType UnitType { get { return unitType; } } // 캐릭터 타입 0: 기사, 1: 궁수, 2: 마법사
@@ -36,4 +39,6 @@ public class UnitInfo : ScriptableObject
     public float AttackCool { get { return attackCool; } }  
 
     public float SkillCool { get { return skillCool; } }
+
+    public float AttackDis { get { return attackDis; } }
 }

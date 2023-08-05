@@ -39,14 +39,14 @@ MonoBehaviour:
     - Unit
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8cc8be64f3d9a6747b10201295016eb7
-    m_Address: Enemy0
+    m_Address: Enemy1
     m_ReadOnly: 0
     m_SerializedLabels:
     - default
     - Unit
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b85e213cedb763a409f08577ba0f3281
-    m_Address: Enemy1
+    m_Address: Enemy0
     m_ReadOnly: 0
     m_SerializedLabels:
     - default
