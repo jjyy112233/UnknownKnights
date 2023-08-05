@@ -111,11 +111,12 @@ public class BaseUnit : MonoBehaviour, IAttackable
     private Action SkillEnd;
 
     private UnitAnimation unitAnimation;
+    private HpBar unitHpBar;
     public void AttackAniEnd() => AttackEnd();
     public void SkillAniEnd() => SkillEnd();
 
     bool testAuto = false;
-
+    public bool IsDie => info.IsDie;
     #region 상태패턴
     [SerializeField]
     private UnitState unitState;
@@ -194,6 +195,8 @@ public class BaseUnit : MonoBehaviour, IAttackable
                 case BattleState.Die:
                     animator.SetFloat("Speed", 0);
                     animator.SetTrigger("Die");
+                    BattleManager.Instance.DeadUnit(this);
+                    unitHpBar.gameObject.SetActive(false);
                     break;
                 case BattleState.Count:
                     break;
@@ -210,12 +213,17 @@ public class BaseUnit : MonoBehaviour, IAttackable
     {
         animator = transform.GetComponentInChildren<Animator>();
     }
+
     public void BattleStart()
     {
         teamUnits = unitTeamType == UnitTeamType.Player ? BattleManager.Instance.PlayerUnitList : BattleManager.Instance.EnemyUnitList;
         enemyUnits = unitTeamType == UnitTeamType.Player ? BattleManager.Instance.EnemyUnitList : BattleManager.Instance.PlayerUnitList;
 
         UnitState = UnitState.Battle;
+    }
+    public void BattleEnd()
+    {
+        UnitState = UnitState.Idle;
     }
 
 
@@ -235,11 +243,11 @@ public class BaseUnit : MonoBehaviour, IAttackable
         unitTeamType = teamType;
 
         unitAnimation = transform.GetChild(0).AddComponent<UnitAnimation>();
+        unitHpBar = transform.GetComponentInChildren<HpBar>();
+        unitHpBar.SetColor(UnitTeamType);
 
         AttackEnd += delegate
         {
-            if (info.IsDie)
-                Debug.Log("test");
             BattleState = BattleState.BattleIdle;
         };
         SkillEnd += delegate
@@ -258,7 +266,8 @@ public class BaseUnit : MonoBehaviour, IAttackable
     public virtual void OnDamage(BaseUnit target, int damage) //피격
     {
         info.Hp -= damage;
-        if (info.IsDie)
+        unitHpBar.MoveValue = info.GetHpRatio;
+        if (IsDie)
         {
             BattleState = BattleState.Die;
         }
@@ -305,7 +314,7 @@ public class BaseUnit : MonoBehaviour, IAttackable
                 break;
             case BattleState.BattleIdle:
 
-                if(battleTarget.info.IsDie && FindTarget != null)
+                if(battleTarget.IsDie && FindTarget != null)
                     FindTarget();
                 else 
                 {
@@ -323,7 +332,7 @@ public class BaseUnit : MonoBehaviour, IAttackable
                 break;
             case BattleState.MoveToTarget:
 
-                if (battleTarget.info.IsDie)
+                if (battleTarget.IsDie)
                     FindTarget();
                 else
                 {
@@ -365,7 +374,7 @@ public class BaseUnit : MonoBehaviour, IAttackable
 
         foreach (var unit in enemyUnits)
         {
-            if (unit.info.IsDie)
+            if (unit.IsDie)
                 continue;
 
             var dis = Vector2.Distance(unit.transform.position, transform.position);

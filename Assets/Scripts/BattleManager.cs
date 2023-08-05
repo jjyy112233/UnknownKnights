@@ -23,9 +23,11 @@ public class BattleManager : Singleton<BattleManager>
 
     private List<BaseUnit> playerUnitList;
     public List<BaseUnit> PlayerUnitList => playerUnitList;
+    private int alivePlayerUnitCount;
 
     private List<BaseUnit> enemyUnitList;
     public List<BaseUnit> EnemyUnitList => enemyUnitList;
+    private int aliveEnemyUnitCount;
 
     public Vector3 GetStartPosition(int line, int idx) => unitStartPositions[line].line[idx].position;
 
@@ -105,6 +107,9 @@ public class BattleManager : Singleton<BattleManager>
         playerUnitList = unitList.FindAll(t => t.UnitTeamType == UnitTeamType.Player);
         enemyUnitList = unitList.FindAll(t => t.UnitTeamType == UnitTeamType.Enemy);
 
+        alivePlayerUnitCount = playerUnitList.Count;
+        aliveEnemyUnitCount = enemyUnitList.Count;
+
         battleMask.gameObject.SetActive(true);
         StartCoroutine(battleMask.FadeIn());
 
@@ -125,7 +130,34 @@ public class BattleManager : Singleton<BattleManager>
                 unit.BattleStart();
             }
         }
-
     }
 
+    public void DeadUnit(BaseUnit dieUnit)
+    {
+        switch (dieUnit.UnitTeamType)
+        {
+            case UnitTeamType.Player:
+                alivePlayerUnitCount--;
+                if(alivePlayerUnitCount == 0)
+                {
+                    foreach (var unit in EnemyUnitList)
+                    {
+                        if (!unit.IsDie)
+                            unit.BattleEnd();
+                    }
+                }
+                break;
+            case UnitTeamType.Enemy:
+                aliveEnemyUnitCount--;
+                if (aliveEnemyUnitCount == 0)
+                {
+                    foreach (var unit in PlayerUnitList)
+                    {
+                        if (!unit.IsDie)
+                            unit.BattleEnd();
+                    }
+                }
+                break;
+        }
+    }
 }
