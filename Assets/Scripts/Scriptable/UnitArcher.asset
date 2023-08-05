@@ -21,3 +21,4 @@ MonoBehaviour:
   attackCool: 2
   skillCool: 3
   attackDis: 10
+  effectList: 65000000

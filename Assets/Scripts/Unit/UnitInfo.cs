@@ -1,3 +1,5 @@
+using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "UnitData", menuName = "Unit/UnitData")]
@@ -27,6 +29,8 @@ public class UnitInfo : ScriptableObject
     [SerializeField]
     private float attackDis;
 
+    [SerializeField]
+    private List<int> effectList;
 
     public string UnitName { get { return unitName; } }
     public UnitType UnitType { get { return unitType; } } // 캐릭터 타입 0: 기사, 1: 궁수, 2: 마법사
@@ -41,4 +45,5 @@ public class UnitInfo : ScriptableObject
     public float SkillCool { get { return skillCool; } }
 
     public float AttackDis { get { return attackDis; } }
+    public List<int> EffectList { get { return effectList; } }
 }

@@ -100,6 +100,7 @@ MonoBehaviour:
   startLineNum: 0
   unitState: 0
   battleState: 0
+  arrowPref: {fileID: 8804596481561326993, guid: 6b7c1863567f31d40b33add122c3068d, type: 3}
 --- !u!1 &359900077038044676
 GameObject:
   m_ObjectHideFlags: 0
