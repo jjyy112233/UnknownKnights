@@ -10,4 +10,10 @@ public class UnitKnight : BaseUnit
         base.InitInfo(data, posIdx, pos, teamType);
         AddFindTarget(SetMinDistanceTarget);
     }
+
+    public override void OnAttack()
+    {
+        battleTarget.OnDamage(this, 10);
+        Debug.Log("Knight Attack");
+    }
 }

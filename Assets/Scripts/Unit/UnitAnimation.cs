@@ -10,4 +10,6 @@ public class UnitAnimation : MonoBehaviour
 
     public void AttackAniEnd() => baseUnit.AttackAniEnd();
     public void SkillAniEnd() => baseUnit.SkillAniEnd();
+    public void OnAttack() => baseUnit.OnAttack();
+    public void OnSkill() => baseUnit.OnSkill();
 }

@@ -4,8 +4,8 @@ using UnityEngine;
 
 public interface IAttackable
 {
-    void OnAttack(BaseUnit target, int damage);
-    void OnSkill(BaseUnit target, int damage);
+    void OnAttack();
+    void OnSkill();
     void OnDamage(BaseUnit target, int damage);
     void OnDead();
     

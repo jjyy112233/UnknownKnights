@@ -48,7 +48,7 @@ public class BaseUnitInfo
         NowSkillCool += delta;
     }
 
-    public bool IsDie() => hp <= 0;
+    public bool IsDie => hp <= 0;
     public float GetHpRatio => (float)Hp / (float)MaxHp;
 
     public bool AddAttackCool(float delta)
@@ -114,7 +114,10 @@ public class BaseUnit : MonoBehaviour, IAttackable
     public void AttackAniEnd() => AttackEnd();
     public void SkillAniEnd() => SkillEnd();
 
+    bool testAuto = false;
+
     #region 상태패턴
+    [SerializeField]
     private UnitState unitState;
     protected UnitState UnitState
     {
@@ -157,6 +160,7 @@ public class BaseUnit : MonoBehaviour, IAttackable
         }
     }
 
+    [SerializeField]
     private BattleState battleState;
     protected BattleState BattleState
     {
@@ -180,9 +184,11 @@ public class BaseUnit : MonoBehaviour, IAttackable
                     animator.SetFloat("Speed", info.Speed);
                     break;
                 case BattleState.Attack:
+                    info.NowAttackCool = 0f;
                     animator.SetTrigger("Attack");
                     break;
                 case BattleState.Skill:
+                    info.NowSkillCool = 0f;
                     animator.SetTrigger("Skill");
                     break;
                 case BattleState.Die:
@@ -232,37 +238,40 @@ public class BaseUnit : MonoBehaviour, IAttackable
 
         AttackEnd += delegate
         {
-            info.NowAttackCool = 0f;
+            if (info.IsDie)
+                Debug.Log("test");
             BattleState = BattleState.BattleIdle;
         };
         SkillEnd += delegate
         {
-            info.NowSkillCool = 0f;
             BattleState = BattleState.BattleIdle;
         };
     }
 
 
     #region Attackable interface
-    public void OnAttack(BaseUnit target, int damage) //타겟을 공격
+    public virtual void OnAttack() //타겟을 공격
     {
-        target.OnDamage(this, damage);
+        battleTarget.OnDamage(this, 10);
     }
 
-    public void OnDamage(BaseUnit target, int damage) //피격
+    public virtual void OnDamage(BaseUnit target, int damage) //피격
     {
         info.Hp -= damage;
+        if (info.IsDie)
+        {
+            BattleState = BattleState.Die;
+        }
     }
-
-    public void OnDead()
+    public virtual void OnSkill()
+    {
+        battleTarget.OnDamage(this, 10);
+    }
+    public virtual void OnDead()
     {
 
     }
 
-    public void OnSkill(BaseUnit target, int damage)
-    {
-        info.NowSkillCool = 0f;
-    }
     #endregion
 
 
@@ -296,13 +305,13 @@ public class BaseUnit : MonoBehaviour, IAttackable
                 break;
             case BattleState.BattleIdle:
 
-                if(battleTarget == null && FindTarget != null)
+                if(battleTarget.info.IsDie && FindTarget != null)
                     FindTarget();
                 else 
                 {
                     if (IsTargetAround())
                     {
-                        if (info.IsSkill)
+                        if (testAuto && info.IsSkill)
                             BattleState = BattleState.Skill;
                         else if (info.IsAttack)
                             BattleState = BattleState.Attack;
@@ -314,7 +323,7 @@ public class BaseUnit : MonoBehaviour, IAttackable
                 break;
             case BattleState.MoveToTarget:
 
-                if (battleTarget == null)
+                if (battleTarget.info.IsDie)
                     FindTarget();
                 else
                 {
@@ -356,6 +365,9 @@ public class BaseUnit : MonoBehaviour, IAttackable
 
         foreach (var unit in enemyUnits)
         {
+            if (unit.info.IsDie)
+                continue;
+
             var dis = Vector2.Distance(unit.transform.position, transform.position);
             if (dis < min)
             {
