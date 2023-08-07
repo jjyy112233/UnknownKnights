@@ -13,7 +13,6 @@ public class UnitKnight : BaseUnit
 
     public override void OnAttack()
     {
-        battleTarget.OnDamage(this, 10);
-        Debug.Log("Knight Attack");
+        battleTarget.OnDamage(this, info.AttackDamage);
     }
 }

@@ -18,7 +18,7 @@ public class ArrowRain : SkillEffect
     
     public void SetDamage()
     {
-        target.OnDamage(target, 10);
+        target.OnDamage(target, myUnit.SkillDamage);
     }
 
     public override void DestroyEffect()

@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class HpBar : MonoBehaviour
 {
-    SpriteRenderer backSprite;
     SpriteRenderer hpSprite;
 
     [SerializeField]
@@ -21,7 +20,6 @@ public class HpBar : MonoBehaviour
 
     private void Awake()
     {
-        backSprite = GetComponent<SpriteRenderer>();
         hpSprite = transform.GetChild(0).GetComponent<SpriteRenderer>();
     }
     public void SetColor(UnitTeamType type) =>

@@ -25,6 +25,15 @@ public class BaseUnitInfo
 
     [SerializeField] float attackDis;
 
+    [SerializeField]
+    private int attackDamage;
+
+    [SerializeField]
+    private int skillDamage;
+
+    public int AttackDamage { get { return attackDamage; } set { attackDamage = value; } }
+    public int SkillDamage { get { return skillDamage; } set { skillDamage = value; } }
+
     public string UnitName { get { return unitName; } set { unitName = value; } }
     public UnitType UnitType { get { return unitType; } set { unitType = value; } }
     public ElementType ElementType { get { return elementType; } set { elementType = value; } }
@@ -34,10 +43,24 @@ public class BaseUnitInfo
     public int Speed { get { return speed; } set { speed = value; } }
 
     public float AttackCool { get { return attackCool; } set { attackCool = value; } }
-    public float NowAttackCool { get { return nowAttackCool; } set { nowAttackCool = value; } }
+    public float NowAttackCool
+    {
+        get { return nowAttackCool; }
+        set
+        {
+            nowAttackCool = Mathf.Min(AttackCool, value);
+        }
+    }
     public bool IsAttack => NowAttackCool >= AttackCool;
     public float SkillCool { get { return skillCool; } set { skillCool = value; } }
-    public float NowSkillCool { get { return nowSkillCool; } set { nowSkillCool = value; } }
+    public float NowSkillCool
+    {
+        get { return nowSkillCool; }
+        set
+        {
+            nowSkillCool = Mathf.Min(SkillCool, value);
+        }
+    }
     public bool IsSkill => NowSkillCool >= SkillCool;
 
     public float AttackDis { get { return attackDis; } set { attackDis = value; } }
@@ -46,6 +69,7 @@ public class BaseUnitInfo
     {
         NowAttackCool += delta;
         NowSkillCool += delta;
+
     }
 
     public bool IsDie => hp <= 0;
@@ -57,14 +81,15 @@ public class BaseUnitInfo
         return AttackCool <= NowAttackCool;
     }
 
-    public bool AddSkillCool(float delta)
+    public bool AddSkillCool(float delta, Action skillCoolButton)
     {
         NowSkillCool += delta;
+        skillCoolButton();
         return SkillCool <= NowSkillCool;
     }
 
     public BaseUnitInfo(string name, UnitType uType, ElementType eleType, int maxHp, int def, 
-        int speed, float atkCool, float sklCool, float attackDis)
+        int speed, float atkCool, float sklCool, float attackDis, int attackDamage, int skillDamage)
     {
         this.UnitName = name;
         this.UnitType = uType;
@@ -76,12 +101,16 @@ public class BaseUnitInfo
         this.SkillCool = sklCool;
         this.AttackDis = attackDis;
 
+        this.AttackDamage = attackDamage;
+        this.SkillDamage = skillDamage;
+
         this.NowAttackCool = this.NowSkillCool = 0f;
     }
 }
 
 public class BaseUnit : MonoBehaviour, IAttackable
 {
+    BattleManager battleManager;
     [SerializeField]
     protected BaseUnitInfo info;
     protected List<BaseUnit> teamUnits;
@@ -114,9 +143,37 @@ public class BaseUnit : MonoBehaviour, IAttackable
     private HpBar unitHpBar;
     public void AttackAniEnd() => AttackEnd();
     public void SkillAniEnd() => SkillEnd();
+    public int SkillDamage => info.SkillDamage;
 
-    bool testAuto = true;
+
+    private bool auto = false;
+    public bool Auto
+    {
+        get
+        {
+            return auto;
+        }
+        set
+        {
+            auto = value;
+        }
+    }
     public bool IsDie => info.IsDie;
+    public float GetHp => info.Hp;
+    public float GetMaxHp => info.MaxHp;
+    public float SkillCool => info.SkillCool;
+    public float NowSkillCool => info.NowSkillCool;
+    private Action skillCoolButton;
+    public Action SkillCoolButton { get { return skillCoolButton; } set { skillCoolButton = value; } }
+
+    private Action setDieButton;
+    public Action SetDieButton { get { return setDieButton; } set { setDieButton = value; } }
+
+    private Action<float> setButtonHp;
+    public Action<float> SetButtonHp { get { return setButtonHp; } set { setButtonHp = value; } }
+
+    public string UnitName => info.UnitName;
+
     #region 상태패턴
     [SerializeField]
     private UnitState unitState;
@@ -193,10 +250,13 @@ public class BaseUnit : MonoBehaviour, IAttackable
                     animator.SetTrigger("Skill");
                     break;
                 case BattleState.Die:
+                    info.Hp = 0;
                     animator.SetFloat("Speed", 0);
                     animator.SetTrigger("Die");
-                    BattleManager.Instance.DeadUnit(this);
+                    battleManager.DeadUnit(this);
                     unitHpBar.gameObject.SetActive(false);
+                    if(UnitTeamType == UnitTeamType.Player)
+                       SetDieButton();
                     break;
                 case BattleState.Count:
                     break;
@@ -212,12 +272,13 @@ public class BaseUnit : MonoBehaviour, IAttackable
     private void Awake()
     {
         animator = transform.GetComponentInChildren<Animator>();
+        battleManager = GameObject.FindAnyObjectByType<BattleManager>();
     }
 
     public void BattleStart()
     {
-        teamUnits = unitTeamType == UnitTeamType.Player ? BattleManager.Instance.PlayerUnitList : BattleManager.Instance.EnemyUnitList;
-        enemyUnits = unitTeamType == UnitTeamType.Player ? BattleManager.Instance.EnemyUnitList : BattleManager.Instance.PlayerUnitList;
+        teamUnits = unitTeamType == UnitTeamType.Player ? battleManager.PlayerUnitList : battleManager.EnemyUnitList;
+        enemyUnits = unitTeamType == UnitTeamType.Player ? battleManager.EnemyUnitList : battleManager.PlayerUnitList;
 
         UnitState = UnitState.Battle;
     }
@@ -230,7 +291,7 @@ public class BaseUnit : MonoBehaviour, IAttackable
     public virtual void InitInfo(UnitInfo data,Vector3Int posIdx, Vector3 pos, UnitTeamType teamType)
     {
         info = new BaseUnitInfo(data.UnitName, data.UnitType, data.ElementType, data.MaxHp,
-            data.Def, data.Speed, data.AttackCool, data.SkillCool, data.AttackDis);
+            data.Def, data.Speed, data.AttackCool, data.SkillCool, data.AttackDis, data.AttackDamage, data.SkillDamage);
 
         transform.localScale = new Vector3(teamType == UnitTeamType.Player  ? -1 : 1, 1, 1);
         movePos = pos;
@@ -260,7 +321,7 @@ public class BaseUnit : MonoBehaviour, IAttackable
     #region Attackable interface
     public virtual void OnAttack() //타겟을 공격
     {
-        battleTarget.OnDamage(this, 10);
+        battleTarget.OnDamage(this, info.AttackDamage);
     }
 
     public virtual void OnDamage(BaseUnit target, int damage) //피격
@@ -271,10 +332,13 @@ public class BaseUnit : MonoBehaviour, IAttackable
         {
             BattleState = BattleState.Die;
         }
+        battleManager.SetHpBar(unitTeamType);
+        if(UnitTeamType == UnitTeamType.Player)
+            SetButtonHp(info.GetHpRatio);
     }
     public virtual void OnSkill()
     {
-        battleTarget.OnDamage(this, 10);
+        battleTarget.OnDamage(this, info.SkillDamage);
     }
     public virtual void OnDead()
     {
@@ -300,13 +364,15 @@ public class BaseUnit : MonoBehaviour, IAttackable
         {
             transform.position = movePos;
             UnitState = UnitState.Idle;
-            BattleManager.Instance.UnitReadySucces();
+            battleManager.UnitReadySucces();
         }
 
     }
     protected void BattleUpdate(float delta)
     {
         info.AddDeltaTime(delta);
+        if(UnitTeamType == UnitTeamType.Player)
+            SkillCoolButton();
 
         switch (BattleState)
         {
@@ -320,7 +386,7 @@ public class BaseUnit : MonoBehaviour, IAttackable
                 {
                     if (IsTargetAround())
                     {
-                        if (testAuto && info.IsSkill)
+                        if ((Auto || UnitTeamType == UnitTeamType.Enemy) && info.IsSkill)
                             BattleState = BattleState.Skill;
                         else if (info.IsAttack)
                             BattleState = BattleState.Attack;
@@ -453,7 +519,11 @@ public class BaseUnit : MonoBehaviour, IAttackable
     {
         UnitState = UnitState.Move;
     }
-
+    public void OnClickSkill()
+    {
+        if(info.IsSkill)
+            BattleState = BattleState.Skill;
+    }
     private void OnDestroy()
     {
         Addressables.ReleaseInstance(gameObject);

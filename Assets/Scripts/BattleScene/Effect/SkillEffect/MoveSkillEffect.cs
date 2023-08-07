@@ -43,7 +43,7 @@ public class MoveSkillEffect : SkillEffect
 
             if (Vector2.Distance(transform.position, targetPos) < 1f)
             {
-                target.OnDamage(myUnit, 10);
+                target.OnDamage(target, myUnit.SkillDamage);
                 break;
             }
 

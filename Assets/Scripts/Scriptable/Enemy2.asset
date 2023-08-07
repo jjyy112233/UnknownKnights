@@ -21,3 +21,6 @@ MonoBehaviour:
   attackCool: 2
   skillCool: 3
   attackDis: 2
+  effectList: 
+  attackDamage: 8
+  skillDamage: 15

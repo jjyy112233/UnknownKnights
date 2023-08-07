@@ -45,5 +45,14 @@ public class UnitInfo : ScriptableObject
     public float SkillCool { get { return skillCool; } }
 
     public float AttackDis { get { return attackDis; } }
+
+    [SerializeField]
+    private int attackDamage;
+
+    [SerializeField]
+    private int skillDamage;
+
+    public int AttackDamage { get { return attackDamage; } }
+    public int SkillDamage { get { return skillDamage; } }
     public List<int> EffectList { get { return effectList; } }
 }

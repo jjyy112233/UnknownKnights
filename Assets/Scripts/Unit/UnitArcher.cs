@@ -20,7 +20,7 @@ public class UnitArcher : BaseUnit
         arrow.SetTarget(this, battleTarget);
         arrow.MoveStart();
 
-        //battleTarget.OnDamage(this, 10);
+        battleTarget.OnDamage(this, info.AttackDamage);
     }
     public override void OnSkill()
     {
@@ -29,5 +29,7 @@ public class UnitArcher : BaseUnit
 
         arrowRain.SetPosition(battleTarget.transform.position);
         arrowRain.SetTarget(this, battleTarget);
+
+        battleTarget.OnDamage(this, info.SkillDamage);
     }
 }

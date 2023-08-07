@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.PackageManager;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -10,9 +10,10 @@ public class BattleStartPosLine
 {
     public Transform[] line;
 }
-public class BattleManager : Singleton<BattleManager>
+public class BattleManager : MonoBehaviour
 {
-
+    [SerializeField]
+    BattleSceneUi battleUi;
     [SerializeField]
     private BattleStartPosLine[] unitStartPositions; //[0: 앞, 1: 중앙, 2: 뒤][0: 위, 2: 아래]
 
@@ -33,11 +34,15 @@ public class BattleManager : Singleton<BattleManager>
 
     private int LoadUnitCount;
     private int readyCount;
+    private bool isAuto = false;
+    public bool IsAuto => isAuto;
 
     private void Start()
     {
+        battleUi.SetTimer(60f);
         battleMask.gameObject.SetActive(false);
         LoadUnits();
+        battleUi.SetAutoButtonColor(IsAuto);
     }
 
     public void LoadUnits()
@@ -65,6 +70,7 @@ public class BattleManager : Singleton<BattleManager>
                 LoadUnit(enemyUnits[i].lines[j], new Vector3Int(i, j), pos, UnitTeamType.Enemy);
             }
         }
+
     }
     Vector3 GetPos(int lintNum, int lineCount, int nowIdx)
     {
@@ -72,11 +78,11 @@ public class BattleManager : Singleton<BattleManager>
         {
             return Vector2.Lerp(GetStartPosition(lintNum, 0), GetStartPosition(lintNum, 1), (nowIdx) * 0.5f);
         }
-        else if(lineCount == 2)
+        else if (lineCount == 2)
         {
             return Vector2.Lerp(GetStartPosition(lintNum, 0), GetStartPosition(lintNum, 1), 0.33f * (nowIdx + 1));
         }
-        else if(lineCount == 1)
+        else if (lineCount == 1)
         {
             return Vector2.Lerp(GetStartPosition(lintNum, 0), GetStartPosition(lintNum, 1), 0.5f);
         }
@@ -84,7 +90,7 @@ public class BattleManager : Singleton<BattleManager>
         Debug.LogError("NotUnit");
         return Vector3.zero;
     }
-    private void LoadUnit(string unitName,Vector3Int posIdx, Vector3 pos, UnitTeamType teamType)
+    private void LoadUnit(string unitName, Vector3Int posIdx, Vector3 pos, UnitTeamType teamType)
     {
         var op = Addressables.InstantiateAsync(unitName, Vector3.zero, Quaternion.identity, null, true);
         op.Completed += (AsyncOperationHandle<GameObject> obj) =>
@@ -113,6 +119,11 @@ public class BattleManager : Singleton<BattleManager>
         battleMask.gameObject.SetActive(true);
         StartCoroutine(battleMask.FadeIn());
 
+        for (int i = 0; i < PlayerUnitList.Count; i++)
+        {
+            SetBattleUnitButton(PlayerUnitList[i], i);
+            PlayerUnitList[i].Auto = isAuto;
+        }
         foreach (var unit in unitList)
         {
             unit.WaitBattle();
@@ -122,42 +133,80 @@ public class BattleManager : Singleton<BattleManager>
     public void UnitReadySucces()
     {
         readyCount++;
-        if(readyCount == unitList.Count)
+        if (readyCount == unitList.Count)
         {
             Debug.Log("BattleStart");
             foreach (var unit in unitList)
             {
                 unit.BattleStart();
             }
+            battleUi.StartTimer();
         }
     }
 
     public void DeadUnit(BaseUnit dieUnit)
-    { 
+    {
         switch (dieUnit.UnitTeamType)
         {
             case UnitTeamType.Player:
                 alivePlayerUnitCount--;
-                if(alivePlayerUnitCount == 0)
+                if (alivePlayerUnitCount == 0)
                 {
-                    foreach (var unit in EnemyUnitList)
-                    {
-                        if (!unit.IsDie)
-                            unit.BattleEnd();
-                    }
+                    BattleTimeEnd();
                 }
                 break;
             case UnitTeamType.Enemy:
                 aliveEnemyUnitCount--;
                 if (aliveEnemyUnitCount == 0)
                 {
-                    foreach (var unit in PlayerUnitList)
-                    {
-                        if (!unit.IsDie)
-                            unit.BattleEnd();
-                    }
+                    BattleTimeEnd();
                 }
                 break;
+        }
+
+        if (aliveEnemyUnitCount == 0 || alivePlayerUnitCount == 0)
+        {
+            battleUi.StopTimer();
+        }
+
+    }
+
+    public void SetHpBar(UnitTeamType type)
+    {
+        var list = type == UnitTeamType.Player ? PlayerUnitList : EnemyUnitList;
+        var allHp = list.Sum(t => t.GetMaxHp);
+        var nowHp = list.Sum(t => t.GetHp);
+
+        if (type == UnitTeamType.Enemy)
+            Debug.Log($"{allHp}    {nowHp}");
+        battleUi.SetHpBar(type, nowHp / allHp);
+    }
+
+    public void BattleTimeEnd()
+    {
+        foreach (var unit in EnemyUnitList)
+        {
+            if (!unit.IsDie)
+                unit.BattleEnd();
+        }
+        foreach (var unit in PlayerUnitList)
+        {
+            if (!unit.IsDie)
+                unit.BattleEnd();
+        }
+    }
+    public void SetBattleUnitButton(BaseUnit unit, int idx)
+    {
+        battleUi.AddUnit(unit, idx);
+    }
+
+    public void OnClickAuto()
+    {
+        isAuto = !isAuto;
+        foreach (var unit in PlayerUnitList)
+        {
+            if (!unit.IsDie)
+                unit.Auto = isAuto;
         }
     }
 }

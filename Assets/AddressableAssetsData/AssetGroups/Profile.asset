@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Profile
+  m_EditorClassIdentifier: 
+  m_GroupName: Profile
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 679339f57054eaf468236c5542867567
+  m_SerializeEntries:
+  - m_GUID: 897257474666d1b41a9a92bee148b22b
+    m_Address: UnitMagicianProfile
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - default
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 75678199c165b204c83458a5e3b8212b
+    m_Address: UnitArcherProfile
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - default
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: af1ea411e0bc6a04cba10fb128fbbb01
+    m_Address: UnitKnightProfile
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - default
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 28372201113e9eb4183e1d4273a25903, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: abcb25928ae3482469fc4565e2e51380, type: 2}
+    - {fileID: 11400000, guid: 939866fe211ea214a8a1b87e3eb18672, type: 2}
