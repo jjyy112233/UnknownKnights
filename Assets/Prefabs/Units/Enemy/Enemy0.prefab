@@ -1056,7 +1056,8 @@ MonoBehaviour:
   startLineNum: 0
   unitState: 0
   battleState: 0
-  arrowPref: {fileID: 8804596481561326993, guid: 6b7c1863567f31d40b33add122c3068d, type: 3}
+  arrowPref: {fileID: 8804596481561326993, guid: 3ee0caee797df8d48ae3f0414cb6ba8e, type: 3}
+  arrowRainPref: {fileID: 6940220321130565771, guid: 01d84695b69d47542b8a9215468e871e, type: 3}
 --- !u!1 &2562622868053892519
 GameObject:
   m_ObjectHideFlags: 0

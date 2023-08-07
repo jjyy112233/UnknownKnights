@@ -5,6 +5,7 @@ using UnityEngine;
 public class UnitArcher : BaseUnit
 {
     public MoveSkillEffect arrowPref;
+    public ArrowRain arrowRainPref;
     public override void InitInfo(UnitInfo data, Vector3Int posIdx, Vector3 pos, UnitTeamType teamType)
     {
         base.InitInfo(data, posIdx, pos, teamType);
@@ -15,11 +16,18 @@ public class UnitArcher : BaseUnit
         //MoveSkillEffect arrow = (MoveSkillEffect)(EffectManager.Instance.Pool(101).Get());
         var arrow = Instantiate(arrowPref);
 
-        arrow.SetPosition(transform.position + new Vector3(0, 1, 0));
-        arrow.SetTarget(battleTarget);
+        arrow.SetPosition(transform.position + new Vector3(0, 0.7f, 0));
+        arrow.SetTarget(this, battleTarget);
         arrow.MoveStart();
 
         //battleTarget.OnDamage(this, 10);
-        Debug.Log("Knight Attack");
+    }
+    public override void OnSkill()
+    {
+        //MoveSkillEffect arrow = (MoveSkillEffect)(EffectManager.Instance.Pool(101).Get());
+        var arrowRain = Instantiate(arrowRainPref);
+
+        arrowRain.SetPosition(battleTarget.transform.position);
+        arrowRain.SetTarget(this, battleTarget);
     }
 }

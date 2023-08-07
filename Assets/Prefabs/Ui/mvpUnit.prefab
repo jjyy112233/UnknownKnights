@@ -296,7 +296,7 @@ GameObject:
   - component: {fileID: 407284813113780370}
   - component: {fileID: 2896100637204115643}
   m_Layer: 5
-  m_Name: Unit
+  m_Name: mvpUnit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

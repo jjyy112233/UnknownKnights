@@ -115,7 +115,7 @@ public class BaseUnit : MonoBehaviour, IAttackable
     public void AttackAniEnd() => AttackEnd();
     public void SkillAniEnd() => SkillEnd();
 
-    bool testAuto = false;
+    bool testAuto = true;
     public bool IsDie => info.IsDie;
     #region 상태패턴
     [SerializeField]
